@@ -4,30 +4,33 @@ import XCTest
 import MacroMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "URL": URLMacro.self,
 ]
 
 final class MacroTests: XCTestCase {
-    func testMacro() {
+    func testValidURL() {
         assertMacroExpansion(
-            """
-            #stringify(a + b)
-            """,
-            expandedSource: """
-            (a + b, "a + b")
-            """,
+            #"""
+            #URL("https://www.avanderlee.com")
+            """#,
+            expandedSource: #"""
+            URL(string: "https://www.avanderlee.com")!
+            """#,
             macros: testMacros
         )
     }
 
-    func testMacroWithStringLiteral() {
+    func testURLStringLiteralError() {
         assertMacroExpansion(
             #"""
-            #stringify("Hello, \(name)")
+            #URL("https://www.avanderlee.com/\(Int.random())")
             """#,
             expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
+
             """#,
+            diagnostics: [
+                DiagnosticSpec(message: "#URL requires a static string literal", line: 1, column: 1)
+            ],
             macros: testMacros
         )
     }

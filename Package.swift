@@ -31,7 +31,8 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
-            ]
+            ],
+            linkerSettings: [.unsafeFlags(["-fprofile-instr-generate"])]
         ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
