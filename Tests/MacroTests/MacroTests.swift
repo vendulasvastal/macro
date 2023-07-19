@@ -1,10 +1,11 @@
 import SwiftSyntaxMacros
 import SwiftSyntaxMacrosTestSupport
 import XCTest
-import MacroMacros
+import MacroCore
 
 let testMacros: [String: Macro.Type] = [
     "URL": URLMacro.self,
+    "PublicInit": PublicInitMacro.self
 ]
 
 final class MacroTests: XCTestCase {
@@ -31,6 +32,36 @@ final class MacroTests: XCTestCase {
             diagnostics: [
                 DiagnosticSpec(message: "#URL requires a static string literal", line: 1, column: 1)
             ],
+            macros: testMacros
+        )
+    }
+    
+    func testStructPublicInit() {
+        assertMacroExpansion(
+            #"""
+            @PublicInit
+            struct A {
+                var x: String
+                var y: Int
+                var z: String
+            }
+            """#,
+            expandedSource: #"""
+            struct A {
+                var x: String
+                var y: Int
+                var z: String
+                public init(
+                    x: String,
+                    y: Int,
+                    z: String
+                ) {
+                    self.x = x
+                    self.y = y
+                    self.z = z
+                }
+            }
+            """#,
             macros: testMacros
         )
     }

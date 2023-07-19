@@ -7,4 +7,7 @@ import Foundation
 ///
 /// produces an unwrapped `URL` if the URL is valid. Otherwise, it emits a compile-time error.
 @freestanding(expression)
-public macro URL(_ stringLiteral: String) -> URL = #externalMacro(module: "SwiftMacrosExplorationMacros", type: "URLMacro")
+public macro URL(_ stringLiteral: String) -> URL = #externalMacro(module: "MacroCore", type: "URLMacro")
+
+@attached(member, names: named(`init`))
+public macro PublicInit() = #externalMacro(module: "MacroCore", type: "PublicInitMacro")

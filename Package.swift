@@ -27,7 +27,7 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         // Macro implementation that performs the source transformation of a macro.
         .macro(
-            name: "MacroMacros",
+            name: "MacroCore",
             dependencies: [
                 .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
@@ -36,7 +36,7 @@ let package = Package(
         ),
 
         // Library that exposes a macro as part of its API, which is used in client programs.
-        .target(name: "Macro", dependencies: ["MacroMacros"]),
+        .target(name: "Macro", dependencies: ["MacroCore"]),
 
         // A client of the library, which is able to use the macro in its own code.
         .executableTarget(name: "MacroClient", dependencies: ["Macro"]),
@@ -45,7 +45,7 @@ let package = Package(
         .testTarget(
             name: "MacroTests",
             dependencies: [
-                "MacroMacros",
+                "MacroCore",
                 .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax"),
             ]
         ),

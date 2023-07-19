@@ -1,8 +1,19 @@
 import Macro
 
-let a = 17
-let b = 25
+@PublicInit
+struct A {
+    var x: String
+    var y: Int
+    var z: String
+}
 
-let (result, code) = #stringify(a + b)
+let a = A(x: "", y: .zero, z: "")
 
-print("The value \(result) was produced by the code \"\(code)\"")
+//struct B {
+//    @PublicInit
+//    var x: String
+//    @PublicInit
+//    var b: String
+//}
+//
+//let b = B(x: "", b: "")
