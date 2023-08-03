@@ -32,12 +32,14 @@ public struct PublicInitMacro: MemberMacro {
             guard let name = patternBinding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else { return nil }
             guard let type = patternBinding.typeAnnotation?.type else { return nil }
             var typeSourceString = Syntax(type).source()
-            
-            if patternBinding.typeAnnotation?.type.is(FunctionTypeSyntax.self) == true {
+        
+            if patternBinding.typeAnnotation?.type.isFunctionType == true {
                 typeSourceString = "@escaping " + typeSourceString
             }
             
-            return (name: name, type: typeSourceString, initializer: nil)
+            let initializerExprString = patternBinding.initializer.map { Syntax($0.value) }?.source()
+            
+            return (name: name, type: typeSourceString, initializer: initializerExprString)
         }
 
         let initBody: ExprSyntax = """
@@ -48,7 +50,7 @@ public struct PublicInitMacro: MemberMacro {
             PartialSyntaxNodeString(
                 stringLiteral: """
                 public init(
-                \(arguments.map { "\($0.name): \($0.type)" }.joined(separator: ",\n"))
+                \(arguments.map { "\($0.name): \($0.type)" + ($0.initializer.map { "= \($0)" } ?? "") }.joined(separator: ",\n"))
                 )
                 """
             ),
@@ -60,6 +62,12 @@ public struct PublicInitMacro: MemberMacro {
         let finalDeclaration = DeclSyntax(initDeclSyntax)
 
         return [finalDeclaration]
+    }
+}
+
+extension TypeSyntax {
+    var isFunctionType: Bool {
+        self.is(FunctionTypeSyntax.self) || self.as(AttributedTypeSyntax.self)?.baseType.isFunctionType == true
     }
 }
 

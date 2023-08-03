@@ -13,5 +13,5 @@ typealias HO = () -> Void
 
 @PublicInit
 struct B {
-    let run: () async throws -> Void
+    let run: @Sendable () async throws -> Void
 }
