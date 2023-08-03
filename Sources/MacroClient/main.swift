@@ -9,11 +9,9 @@ struct A {
 
 let a = A(x: "", y: .zero, z: "")
 
-//struct B {
-//    @PublicInit
-//    var x: String
-//    @PublicInit
-//    var b: String
-//}
-//
-//let b = B(x: "", b: "")
+typealias HO = () -> Void
+
+@PublicInit
+struct B {
+    let run: () async throws -> Void
+}

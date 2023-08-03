@@ -65,4 +65,26 @@ final class MacroTests: XCTestCase {
             macros: testMacros
         )
     }
+    
+    func testPublicInitWithClosureProperty() {
+        assertMacroExpansion(
+            #"""
+            @PublicInit
+            struct B {
+                let run: () async throws -> Void
+            }
+            """#
+            , expandedSource: #"""
+            struct B {
+                let run: () async throws -> Void
+                public init(
+                    run: @escaping () async throws -> Void
+                ) {
+                    self.run = run
+                }
+            }
+            """#,
+            macros: testMacros
+        )
+    }
 }

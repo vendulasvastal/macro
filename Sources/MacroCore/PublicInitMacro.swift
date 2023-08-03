@@ -7,7 +7,7 @@ public struct PublicInitMacro: MemberMacro {
         case invalidInputType
 
         var description: String {
-            "@PublicInitMacro is only applicable to structs or classes"
+            "@PublicInit is only applicable to structs or classes"
         }
     }
 
@@ -16,39 +16,39 @@ public struct PublicInitMacro: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-
-        let storedProperties: [VariableDeclSyntax] = try {
-            if let classDeclaration = declaration.as(ClassDeclSyntax.self) {
-                return classDeclaration.storedProperties()
-            } else if let structDeclaration = declaration.as(StructDeclSyntax.self) {
-                return structDeclaration.storedProperties()
-            } else {
-                throw Errors.invalidInputType
+        
+        guard declaration.is(ClassDeclSyntax.self) || declaration.is(StructDeclSyntax.self) else {
+            throw Errors.invalidInputType
+        }
+        
+        let members = declaration.memberBlock.members
+        let storedProperties = members.storedProperties
+        
+        let arguments = storedProperties.compactMap { syntax -> (name: String, type: String, initializer: String?)? in
+            guard let patternBinding = syntax.bindings.first else { return nil }
+            
+            // is let and has initializer -> cannot be initialized again
+            if syntax.bindingKeyword.tokenKind == .keyword(.let), patternBinding.initializer != nil { return nil }
+            guard let name = patternBinding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else { return nil }
+            guard let type = patternBinding.typeAnnotation?.type else { return nil }
+            var typeSourceString = Syntax(type).source()
+            
+            if patternBinding.typeAnnotation?.type.is(FunctionTypeSyntax.self) == true {
+                typeSourceString = "@escaping " + typeSourceString
             }
-        }()
-
-        let initArguments = storedProperties.compactMap { property -> (name: String, type: String)? in
-            guard let patternBinding = property.bindings.first?.as(PatternBindingSyntax.self) else {
-                return nil
-            }
-
-            guard let name = patternBinding.pattern.as(IdentifierPatternSyntax.self)?.identifier,
-                  let type = patternBinding.typeAnnotation?.as(TypeAnnotationSyntax.self)?.type.as(SimpleTypeIdentifierSyntax.self)?.name else {
-                return nil
-            }
-
-            return (name: name.text, type: type.text)
+            
+            return (name: name, type: typeSourceString, initializer: nil)
         }
 
         let initBody: ExprSyntax = """
-            \(raw: initArguments.map { "self.\($0.name) = \($0.name)" }.joined(separator: "\n\t"))
+            \(raw: arguments.map { "self.\($0.name) = \($0.name)" }.joined(separator: "\n\t"))
         """
 
         let initDeclSyntax = try InitializerDeclSyntax(
             PartialSyntaxNodeString(
                 stringLiteral: """
                 public init(
-                \(initArguments.map { "\($0.name): \($0.type)" }.joined(separator: ",\n"))
+                \(arguments.map { "\($0.name): \($0.type)" }.joined(separator: ",\n"))
                 )
                 """
             ),
@@ -99,20 +99,24 @@ extension VariableDeclSyntax {
     }
 
     var isConstant: Bool {
-        bindingKeyword.tokenKind == .keyword(Keyword.let) && bindings.first?.initializer != nil
+        bindingKeyword.tokenKind == .keyword(.let) && bindings.first?.initializer != nil
     }
 }
 
-extension DeclGroupSyntax {
-    /// Get the stored properties from the declaration based on syntax.
-    func storedProperties() -> [VariableDeclSyntax] {
-        return memberBlock.members.compactMap { member in
-            guard let variable = member.decl.as(VariableDeclSyntax.self),
-                  variable.isStoredProperty else {
-                return nil
-            }
-
-            return variable
+extension MemberDeclListSyntax {
+    var storedProperties: [VariableDeclSyntax] {
+        compactMap {
+            if let variable = $0.decl.as(VariableDeclSyntax.self), variable.isStoredProperty {
+                return variable
+            } else { return nil }
         }
+    }
+}
+
+extension Syntax {
+    public func source() -> String {
+        var result = ""
+        write(to: &result)
+        return result
     }
 }
