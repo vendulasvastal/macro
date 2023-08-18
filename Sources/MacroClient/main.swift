@@ -15,3 +15,10 @@ typealias HO = () -> Void
 struct B {
     let run: @Sendable () async throws -> Void
 }
+
+@PublicInit
+struct C {
+    var title: String = ""
+    var count: Int = 0
+    var greeting: String = "ahoj"
+}

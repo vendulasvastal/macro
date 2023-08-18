@@ -51,6 +51,7 @@ final class MacroTests: XCTestCase {
                 var x: String
                 var y: Int
                 var z: String
+            
                 public init(
                     x: String,
                     y: Int,
@@ -77,6 +78,7 @@ final class MacroTests: XCTestCase {
             , expandedSource: #"""
             struct B {
                 let run: () async throws -> Void
+            
                 public init(
                     run: @escaping () async throws -> Void
                 ) {
@@ -99,6 +101,7 @@ final class MacroTests: XCTestCase {
             , expandedSource: #"""
             struct B {
                 let run: @Sendable () async throws -> Void
+            
                 public init(
                     run: @escaping @Sendable () async throws -> Void
                 ) {
@@ -121,6 +124,7 @@ final class MacroTests: XCTestCase {
             , expandedSource: #"""
             struct B {
                 @State var title: String = ""
+            
                 public init(
                     title: String = ""
                 ) {
@@ -147,6 +151,7 @@ final class MacroTests: XCTestCase {
                 var title: String = ""
                 var count: Int = 0
                 var greeting: String = "ahoj"
+            
                 public init(
                     title: String = "",
                     count: Int = 0,

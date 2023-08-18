@@ -81,13 +81,13 @@ extension VariableDeclSyntax {
             return false
         }
 
-        switch binding.accessor {
+        switch binding.accessorBlock?.accessors {
         case .none:
             return true
-        case .accessors(let node):
+        case .accessors(let accessors):
             // traverse accessors
-            for accessor in node.accessors {
-                switch accessor.accessorKind.tokenKind {
+            for accessor in accessors {
+                switch accessor.accessorSpecifier.tokenKind {
                 case .keyword(.willSet), .keyword(.didSet):
                     // stored properties can have observers
                     break
@@ -103,15 +103,15 @@ extension VariableDeclSyntax {
     }
 
     var isLazyProperty: Bool {
-        modifiers?.contains { $0.name.tokenKind == .keyword(Keyword.lazy) } ?? false
+        modifiers.contains { $0.name.tokenKind == .keyword(Keyword.lazy) }
     }
 
     var isConstant: Bool {
-        bindingKeyword.tokenKind == .keyword(.let) && bindings.first?.initializer != nil
+        bindingSpecifier.tokenKind == .keyword(.let) && bindings.first?.initializer != nil
     }
 }
 
-extension MemberDeclListSyntax {
+extension MemberBlockItemListSyntax {
     var storedProperties: [VariableDeclSyntax] {
         compactMap {
             if let variable = $0.decl.as(VariableDeclSyntax.self), variable.isStoredProperty {
