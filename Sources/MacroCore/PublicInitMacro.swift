@@ -28,7 +28,7 @@ public struct PublicInitMacro: MemberMacro {
             guard let patternBinding = syntax.bindings.first else { return nil }
             
             // is let and has initializer -> cannot be initialized again
-            if syntax.bindingKeyword.tokenKind == .keyword(.let), patternBinding.initializer != nil { return nil }
+            if syntax.bindingSpecifier.tokenKind == .keyword(.let), patternBinding.initializer != nil { return nil }
             guard let name = patternBinding.pattern.as(IdentifierPatternSyntax.self)?.identifier.text else { return nil }
             guard let type = patternBinding.typeAnnotation?.type else { return nil }
             var typeSourceString = Syntax(type).source()
@@ -47,7 +47,7 @@ public struct PublicInitMacro: MemberMacro {
         """
 
         let initDeclSyntax = try InitializerDeclSyntax(
-            PartialSyntaxNodeString(
+            SyntaxNodeString(
                 stringLiteral: """
                 public init(
                 \(arguments.map { "\($0.name): \($0.type)" + ($0.initializer.map { "= \($0)" } ?? "") }.joined(separator: ",\n"))
